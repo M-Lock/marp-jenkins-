@@ -34,7 +34,9 @@ pipeline {
                 sh 'cd marp-jenkins- && marp diapositivas.md -o ../diapostivas.${BUILD_NUMBER}.pdf' //Ejecuto marp y guardo fuera del repo para que persista entre stage
             }
             post{
-                archiveArtifacts artifacts: 'diapostivas.${BUILD_NUMBER}.pdf', fingerprint: true //guardamos el artefacto
+                success{ //necesitamos saber cuando queremos hacer el post
+                    archiveArtifacts artifacts: 'diapostivas.${BUILD_NUMBER}.pdf', fingerprint: true //guardamos el artefacto
+                }
             }
             
         }
