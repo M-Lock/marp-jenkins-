@@ -7,7 +7,7 @@ pipeline {
     }
 
     triggers{
-        pollSCM('*/2 * * * * ') //Ejecutamos cada 2 min. mejor que el webhook para ir probando
+        pollSCM('H/2 * * * * ') //Ejecutamos cada 2 min
     }
 
     parameters{
@@ -51,6 +51,7 @@ pipeline {
                         cd marp-jenkins-
                         git config user.name ${GH_USER}
                         git config user.email ${params.EMAIL}
+                        git pull
                         git add diapostivas.*.pdf
                         git commit -m "generado pdf con las diapositivas numero ${BUILD_NUMBER}"
                         git push https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins- ${params.PUSH_BRANCH}
