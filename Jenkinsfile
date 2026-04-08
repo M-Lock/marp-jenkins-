@@ -21,7 +21,7 @@ pipeline {
                 dockerfile true
             }
             steps{
-                sh 'echo" npm install -g @marp-team/marp-cli"' //Instalamos la dependencia de marp; Podría ir sin problemas en el dockerfile
+               sh 'which marp' //Comprobamos la instalación de marp
             }
         }
 
