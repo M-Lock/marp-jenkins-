@@ -53,7 +53,7 @@ pipeline {
                         git add diapositivas.*.pdf
                         git commit -m "generado pdf con las diapositivas numero ${BUILD_NUMBER}"
                         git push https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins-.git ${params.PUSH_BRANCH}
-                    """
+                    """ //Jenkins ya mantiene en su volumen el repo copiado, así que lo que hago es cambiarme a main (no estaba en ninguna rama)
                 }
             }
         }
