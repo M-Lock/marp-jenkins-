@@ -47,9 +47,6 @@ pipeline {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]){
                     sh """ 
-                        git clone https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins-.git
-                        cp diapositivas.${BUILD_NUMBER}.pdf marp-jenkins-/
-                        cd marp-jenkins-
                         git config user.name ${GH_USER}
                         git config user.email ${params.EMAIL}
                         git add diapositivas.*.pdf
