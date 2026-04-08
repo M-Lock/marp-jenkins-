@@ -7,7 +7,7 @@ pipeline {
     }
 
     triggers{
-        pollSCM('H/2 * * * * ') //Ejecutamos cada 2 min. mejor que el webhook para ir probando
+        pollSCM('*/2 * * * * ') //Ejecutamos cada 2 min. mejor que el webhook para ir probando
     }
 
     parameters{
@@ -47,14 +47,14 @@ pipeline {
             }
             steps{
                 withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]){
-                    sh ''' 
+                    sh """ 
                         cd marp-jenkins-
                         git config user.name ${GH_USER}
                         git config user.email ${params.EMAIL}
                         git add diapostivas.*.pdf
                         git commit -m "generado pdf con las diapositivas numero ${BUILD_NUMBER}"
                         git push https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins- ${params.PUSH_BRANCH}
-                    ''' //Movemos el fichero al repo clonado y lo pusheamos a github
+                    """ //Movemos el fichero al repo clonado y lo pusheamos a github. Usamos comillas dobles para poder interpretar las variables
                 }
             }
         }
