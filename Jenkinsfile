@@ -31,7 +31,7 @@ pipeline {
             }
             steps{
                 sh 'git clone https://github.com/M-Lock/marp-jenkins-' //Clono el repositorio para poder acceder al md
-                sh 'cd marp-jenkins- && marp diapositivas.md -o ../diapostivas.${BUILD_NUMBER}.pdf' //Ejecuto marp y guardo fuera del repo para que persista entre stage
+                sh 'cd marp-jenkins- && marp diapositivas.md -o diapostivas.${BUILD_NUMBER}.pdf' //Ejecuto marp y guardo fuera del repo para que persista entre stage
             }
             post{
                 success{ //necesitamos saber cuando queremos hacer el post
@@ -48,12 +48,10 @@ pipeline {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]){
                     sh ''' 
-                        git clone https://github.com/M-Lock/marp-jenkins-
-                        cp diapostivas.${BUILD_NUMBER}.pdf marp-jenkins-/ 
                         cd marp-jenkins-
                         git config user.name ${GH_USER}
                         git config user.email ${params.EMAIL}
-                        git add diapostivas.${BUILD_NUMBER}.pdf
+                        git add diapostivas.*.pdf
                         git commit -m "generado pdf con las diapositivas numero ${BUILD_NUMBER}"
                         git push https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins- ${params.PUSH_BRANCH}
                     ''' //Movemos el fichero al repo clonado y lo pusheamos a github
