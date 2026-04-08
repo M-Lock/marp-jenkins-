@@ -30,7 +30,7 @@ pipeline {
                 dockerfile true //reutilizamos la imagen, que ya tiene instalada la dependencia de marp
             }
             steps{
-                sh 'git clone https://github.com/M-Lock/marp-jenkins-' //Clono el repositorio para poder acceder al md
+                //sh 'git clone https://github.com/M-Lock/marp-jenkins-' //Clono el repositorio para poder acceder al md
                 sh 'cd marp-jenkins- && marp diapositivas.md -o diapostivas.${BUILD_NUMBER}.pdf' //Ejecuto marp y guardo fuera del repo para que persista entre stage
             }
             post{
