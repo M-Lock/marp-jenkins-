@@ -35,7 +35,7 @@ pipeline {
             }
             post{
                 success{ //necesitamos saber cuando queremos hacer el post
-                    archiveArtifacts artifacts: 'diapostivas.${BUILD_NUMBER}.pdf', fingerprint: true //guardamos el artefacto
+                    archiveArtifacts artifacts: 'diapostivas.*.pdf', fingerprint: true //guardamos el artefacto. El asterisco ahí indica cualquier pdf que contenga diapositivas en el nombre
                 }
             }
             
