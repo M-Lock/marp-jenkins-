@@ -30,12 +30,11 @@ pipeline {
                 dockerfile true //reutilizamos la imagen, que ya tiene instalada la dependencia de marp
             }
             steps{
-                //sh 'git clone https://github.com/M-Lock/marp-jenkins-' //Clono el repositorio para poder acceder al md
-                sh 'cd marp-jenkins- && marp diapositivas.md -o diapostivas.${BUILD_NUMBER}.pdf' //Ejecuto marp y guardo fuera del repo para que persista entre stage
+                sh 'marp diapositivas.md -o diapositivas.${BUILD_NUMBER}.pdf' //Ejecuto marp en el workspace
             }
             post{
                 success{ //necesitamos saber cuando queremos hacer el post
-                    archiveArtifacts artifacts: 'diapostivas.*.pdf', fingerprint: true //guardamos el artefacto. El asterisco ahí indica cualquier pdf que contenga diapositivas en el nombre
+                    archiveArtifacts artifacts: 'diapositivas.*.pdf', fingerprint: true //guardamos el artefacto. El asterisco ahí indica cualquier pdf que contenga diapositivas en el nombre
                 }
             }
             
@@ -48,14 +47,15 @@ pipeline {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]){
                     sh """ 
+                        git clone https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins-.git
+                        cp diapositivas.${BUILD_NUMBER}.pdf marp-jenkins-/
                         cd marp-jenkins-
                         git config user.name ${GH_USER}
                         git config user.email ${params.EMAIL}
-                        git pull
-                        git add diapostivas.*.pdf
+                        git add diapositivas.*.pdf
                         git commit -m "generado pdf con las diapositivas numero ${BUILD_NUMBER}"
-                        git push https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins- ${params.PUSH_BRANCH}
-                    """ //Movemos el fichero al repo clonado y lo pusheamos a github. Usamos comillas dobles para poder interpretar las variables
+                        git push https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins-.git ${params.PUSH_BRANCH}
+                    """
                 }
             }
         }
