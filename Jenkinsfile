@@ -50,14 +50,16 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        # Enviamos el proyecto actual a SonarQube para su analisis
-                        sonar-scanner \
-                          -Dsonar.projectKey=marp-jenkins \
-                          -Dsonar.projectName=marp-jenkins \
-                          -Dsonar.sources=. \
-                          -Dsonar.exclusions=**/*.pdf,**/.git/**,**/.scannerwork/**
-                    '''
+                    withCredentials([string(credentialsId: 'sonar_token', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            sonar-scanner \
+                              -Dsonar.projectKey=marp-jenkins \
+                              -Dsonar.projectName=marp-jenkins \
+                              -Dsonar.sources=. \
+                              -Dsonar.exclusions=**/*.pdf,**/.git/**,**/.scannerwork/** \
+                              -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
                 }
             }
         }
