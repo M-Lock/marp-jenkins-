@@ -17,7 +17,31 @@ pipeline {
     }
 
     stages {
+        stage('Skip generated commit') {
+            agent any
+            steps {
+                script {
+                    def lastMessage = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
+                    def changedFiles = sh(returnStdout: true, script: 'git diff-tree --no-commit-id --name-only -r HEAD').trim()
+                        .split('\n')
+                        .findAll { it }
+                    def onlyGeneratedPdfs = changedFiles && changedFiles.every { it ==~ /diapositivas\.\d+\.pdf/ }
+
+                    env.SKIP_GENERATED_COMMIT = (lastMessage.startsWith('generado pdf con las diapositivas numero') && onlyGeneratedPdfs).toString()
+
+                    if (env.SKIP_GENERATED_COMMIT == 'true') {
+                        currentBuild.description = 'Saltada por commit autogenerado de PDF'
+                        echo 'El ultimo commit solo contiene PDFs generados por Jenkins. Se saltan los stages restantes para evitar un bucle.'
+                    }
+                }
+            }
+        }
+
         stage('Build') {
+            when {
+                beforeAgent true
+                expression { env.SKIP_GENERATED_COMMIT != 'true' }
+            }
             agent {
                 dockerfile true
             }
@@ -27,6 +51,10 @@ pipeline {
         }
 
         stage('Create pdf') {
+            when {
+                beforeAgent true
+                expression { env.SKIP_GENERATED_COMMIT != 'true' }
+            }
             agent {
                 dockerfile true // Reutilizamos la imagen, que ya tiene instalada la dependencia de marp
             }
@@ -41,6 +69,10 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
+            when {
+                beforeAgent true
+                expression { env.SKIP_GENERATED_COMMIT != 'true' }
+            }
             agent {
                 docker {
                     image 'sonarsource/sonar-scanner-cli:latest' // Usamos una imagen que ya incluye sonar-scanner
@@ -65,6 +97,10 @@ pipeline {
         }
 
         stage('Quality Gate') {
+            when {
+                beforeAgent true
+                expression { env.SKIP_GENERATED_COMMIT != 'true' }
+            }
             agent any
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -74,21 +110,29 @@ pipeline {
         }
 
         stage('Push the file') {
+            when {
+                beforeAgent true
+                expression { env.SKIP_GENERATED_COMMIT != 'true' }
+            }
             agent {
                 dockerfile true
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-                    sh """
-                        git checkout ${params.PUSH_BRANCH}
+                    sh '''
+                        git checkout "$PUSH_BRANCH"
                         git fetch origin "$PUSH_BRANCH"
                         git reset --hard "origin/$PUSH_BRANCH"
-                        git config user.name ${GH_USER}
-                        git config user.email ${params.EMAIL}
-                        git add diapositivas.*.pdf
-                        git commit -m "generado pdf con las diapositivas numero ${BUILD_NUMBER}"
-                        git push https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins-.git ${params.PUSH_BRANCH}
-                    """ // Jenkins ya mantiene en su volumen el repo copiado
+                        git config user.name "$GH_USER"
+                        git config user.email "$EMAIL"
+                        git add "diapositivas.${BUILD_NUMBER}.pdf"
+                        if ! git diff --cached --quiet; then
+                            git commit -m "generado pdf con las diapositivas numero ${BUILD_NUMBER}"
+                            git push "https://${GH_USER}:${GH_TOKEN}@github.com/M-Lock/marp-jenkins-.git" "$PUSH_BRANCH"
+                        else
+                            echo "No hay cambios que subir para esta build."
+                        fi
+                    ''' // Jenkins ya mantiene en su volumen el repo copiado
                 }
             }
         }
