@@ -44,6 +44,7 @@ pipeline {
             agent {
                 docker {
                     image 'sonarsource/sonar-scanner-cli:latest' // Usamos una imagen que ya incluye sonar-scanner
+                    args '--network host' // Permitimos que el contenedor temporal alcance SonarQube
                     reuseNode true
                 }
             }
