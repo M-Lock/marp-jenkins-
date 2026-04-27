@@ -81,6 +81,8 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
                     sh """
                         git checkout ${params.PUSH_BRANCH}
+                        git fetch origin "$PUSH_BRANCH"
+                        git reset --hard "origin/$PUSH_BRANCH"
                         git config user.name ${GH_USER}
                         git config user.email ${params.EMAIL}
                         git add diapositivas.*.pdf
